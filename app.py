@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,request,jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 # Initialize Flask app
@@ -22,23 +22,28 @@ class Profile(db.Model):
     def __repr__(self):
         return f"Profile(id={self.id}, Name: {self.first_name} {self.last_name}, Age: {self.age})"
 
-# Create the database and tables (with app context)
-# Assuming you're in Python Shell or a script
 
-# Step 1: Import the Flask app and database instance
-# from app import app, db, Profile  # app.py should be the name of your script
+from app import db, Profile
 
-# Step 2: Push the application context
-# with app.app_context():
-#     db.create_all()
+@app.route('/userget', methods=['GET'])
+def get_users():
+    # Retrieve data from the request (if necessary)
+    data = request.get_json()
 
-    # # Now you can safely add records to the database
-    # new_profile = Profile(first_name='John', last_name='Doe', age=30)
-    # db.session.add(new_profile)  # Add the object to the session
-    # db.session.commit()  # Commit the changes to the database
-    # print("Profile added successfully!")
+
+    if not data or not 'first_name' in data or not 'last_name' in data or not 'age' in data:
+        return jsonify({"error": "Missing details"}), 400
+
+    
+    profiles = Profile.query.all()
+
+    # Convert profile data to a list of dictionaries
+    profiles_list = [{"id": profile.id, "first_name": profile.first_name, "last_name": profile.last_name, "age": profile.age} for profile in profiles]
+
+    return jsonify(profiles_list)  
+
 
 
 # Run the Flask application
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
